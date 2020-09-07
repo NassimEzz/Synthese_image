@@ -25,45 +25,6 @@
 NORI_NAMESPACE_BEGIN
 
 /**
- * \brief Intersection data structure
- *
- * This data structure records local information about a ray-triangle intersection.
- * This includes the position, traveled ray distance, uv coordinates, as well
- * as well as two local coordinate frames (one that corresponds to the true
- * geometry, and one that is used for shading computations).
- */
-struct Intersection {
-    /// Position of the surface intersection
-    Point3f p;
-    /// Unoccluded distance along the ray
-    float t;
-    /// UV coordinates, if any
-    Point2f uv;
-    /// Shading frame (based on the shading normal)
-    Frame shFrame;
-    /// Geometric frame (based on the true geometry)
-    Frame geoFrame;
-    /// Pointer to the associated mesh
-    const Mesh *mesh;
-
-    /// Create an uninitialized intersection record
-    Intersection() : mesh(nullptr) { }
-
-    /// Transform a direction vector into the local shading frame
-    Vector3f toLocal(const Vector3f &d) const {
-        return shFrame.toLocal(d);
-    }
-
-    /// Transform a direction vector from local to world coordinates
-    Vector3f toWorld(const Vector3f &d) const {
-        return shFrame.toWorld(d);
-    }
-
-    /// Return a human-readable summary of the intersection record
-    std::string toString() const;
-};
-
-/**
  * \brief Triangle mesh
  *
  * This class stores a triangle mesh object and provides numerous functions
@@ -79,11 +40,17 @@ public:
     /// Initialize internal data structures (called once by the XML parser)
     virtual void activate();
 
-    /// Return the total number of triangles in this shape
+    /// Return the total number of triangles in this hsape
     uint32_t getTriangleCount() const { return (uint32_t) m_F.cols(); }
 
-    /// Return the total number of vertices in this shape
+    /// Return the total number of vertices in this hsape
     uint32_t getVertexCount() const { return (uint32_t) m_V.cols(); }
+
+    /**
+     * \brief Uniformly sample a position on the mesh with
+     * respect to surface area. Returns both position and normal
+     */
+    void samplePosition(const Point2f &sample, Point3f &p, Normal3f &n) const;
 
     /// Return the surface area of the given triangle
     float surfaceArea(uint32_t index) const;

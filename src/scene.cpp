@@ -37,7 +37,11 @@ Scene::~Scene() {
 }
 
 void Scene::activate() {
-    m_accel->build();
+    m_accel->activate();
+    m_shapes.push_back(m_accel);
+    for( Shape *shape : m_shapes) {
+        m_bbox.expandBy(shape->getBoundingBox());
+    }
 
     if (!m_integrator)
         throw NoriException("No integrator was specified!");
@@ -60,10 +64,15 @@ void Scene::addChild(NoriObject *obj) {
         case EMesh: {
                 Mesh *mesh = static_cast<Mesh *>(obj);
                 m_accel->addMesh(mesh);
-                m_meshes.push_back(mesh);
             }
             break;
         
+        case EShape: {
+                Shape *shape = static_cast<Shape *>(obj);
+                m_shapes.push_back(shape);
+            }
+            break;
+
         case EEmitter: {
                 //Emitter *emitter = static_cast<Emitter *>(obj);
                 /* TBD */
@@ -96,12 +105,19 @@ void Scene::addChild(NoriObject *obj) {
 }
 
 std::string Scene::toString() const {
-    std::string meshes;
-    for (size_t i=0; i<m_meshes.size(); ++i) {
-        meshes += std::string("  ") + indent(m_meshes[i]->toString(), 2);
-        if (i + 1 < m_meshes.size())
-            meshes += ",";
-        meshes += "\n";
+    std::string shapes;
+    for (size_t i=0; i<m_shapes.size()-1; ++i) {
+        shapes += std::string("  ") + indent(m_shapes[i]->toString(), 2);
+        if (i + 1 < m_shapes.size())
+            shapes += ",";
+        shapes += "\n";
+    }
+    std::string emitters;
+    for (size_t i=0; i<m_emitters.size(); ++i) {
+        emitters += std::string("  ") + indent(m_emitters[i]->toString(), 2);
+        if (i + 1 < m_emitters.size())
+            emitters += ",";
+        emitters += "\n";
     }
 
     return tfm::format(
@@ -109,13 +125,17 @@ std::string Scene::toString() const {
         "  integrator = %s,\n"
         "  sampler = %s\n"
         "  camera = %s,\n"
-        "  meshes = {\n"
+        "  accel = %s,\n"
+        "  shapes = %s,\n"
+        "  emitters = {\n"
         "  %s  }\n"
         "]",
         indent(m_integrator->toString()),
         indent(m_sampler->toString()),
         indent(m_camera->toString()),
-        indent(meshes, 2)
+        indent(m_accel->toString()),
+        indent(shapes, 2),
+        indent(emitters, 2)
     );
 }
 

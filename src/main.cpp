@@ -126,14 +126,21 @@ static void render(Scene *scene, const std::string &filename) {
         cout << "done. (took " << timer.elapsedString() << ")" << endl;
     });
 
-    /* Enter the application main loop */
-    nanogui::mainloop();
+    bool gui = false;
+    if(gui){
+      /* Enter the application main loop */
+      nanogui::mainloop();
 
-    /* Shut down the user interface */
-    render_thread.join();
+      /* Shut down the user interface */
+      render_thread.join();
 
-    delete screen;
-    nanogui::shutdown();
+      delete screen;
+      nanogui::shutdown();
+    }
+    else {
+      // just finish the rendering thread
+      render_thread.join();
+    }
 
     /* Now turn the rendered image block into
        a properly normalized bitmap */

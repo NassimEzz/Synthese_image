@@ -16,6 +16,7 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <nori/shape.h>
 #include <nori/mesh.h>
 #include <nori/bbox.h>
 #include <nori/bsdf.h>
@@ -142,26 +143,5 @@ std::string Mesh::toString() const {
     );
 }
 
-std::string Intersection::toString() const {
-    if (!mesh)
-        return "Intersection[invalid]";
-
-    return tfm::format(
-        "Intersection[\n"
-        "  p = %s,\n"
-        "  t = %f,\n"
-        "  uv = %s,\n"
-        "  shFrame = %s,\n"
-        "  geoFrame = %s,\n"
-        "  mesh = %s\n"
-        "]",
-        p.toString(),
-        t,
-        uv.toString(),
-        indent(shFrame.toString()),
-        indent(geoFrame.toString()),
-        mesh ? mesh->toString() : std::string("null")
-    );
-}
 
 NORI_NAMESPACE_END

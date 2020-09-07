@@ -55,8 +55,11 @@ public:
     /// Return a pointer to the scene's sample generator
     Sampler *getSampler() { return m_sampler; }
 
-    /// Return a reference to an array containing all meshes
-    const std::vector<Mesh *> &getMeshes() const { return m_meshes; }
+    /// Return a reference to an array containing all shapes
+    const std::vector<Shape *> &getShapes() const { return m_shapes; }
+
+    /// Return a reference to an array containing all emitters
+    const std::vector<Emitter *> &getEmitters() const { return m_emitters; }
 
     /**
      * \brief Intersect a ray against all triangles stored in the scene
@@ -72,8 +75,17 @@ public:
      *
      * \return \c true if an intersection was found
      */
-    bool rayIntersect(const Ray3f &ray, Intersection &its) const {
-        return m_accel->rayIntersect(ray, its, false);
+    bool rayIntersect(const Ray3f &_ray, Intersection &its) const {
+        bool hit=false;
+        Ray3f ray(_ray);
+        its.t = std::numeric_limits<float>::infinity();
+
+        for (auto shape : m_shapes)
+        {
+            bool _hit = shape->rayIntersect(ray, its, false);
+            hit = hit or _hit;
+        }
+        return hit;
     }
 
     /**
@@ -91,14 +103,20 @@ public:
      *
      * \return \c true if an intersection was found
      */
-    bool rayIntersect(const Ray3f &ray) const {
+    bool rayIntersect(const Ray3f &_ray) const {
         Intersection its; /* Unused */
-        return m_accel->rayIntersect(ray, its, true);
+        Ray3f ray(_ray);
+        for (auto shape : m_shapes)
+        {
+            if(shape->rayIntersect(ray, its, true))
+                return true;
+        }
+        return false;
     }
 
     /// \brief Return an axis-aligned box that bounds the scene
     const BoundingBox3f &getBoundingBox() const {
-        return m_accel->getBoundingBox();
+        return m_bbox;
     }
 
     /**
@@ -117,11 +135,13 @@ public:
 
     EClassType getClassType() const { return EScene; }
 private:
-    std::vector<Mesh *> m_meshes;
+    std::vector<Shape *> m_shapes;
+    std::vector<Emitter *> m_emitters;
     Integrator *m_integrator = nullptr;
     Sampler *m_sampler = nullptr;
     Camera *m_camera = nullptr;
     Accel *m_accel = nullptr;
+    BoundingBox3f m_bbox;
 };
 
 NORI_NAMESPACE_END
