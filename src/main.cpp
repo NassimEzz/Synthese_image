@@ -34,6 +34,7 @@
 using namespace nori;
 
 static int threadCount = -1;
+static bool use_gui = true;
 
 static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block) {
     const Camera *camera = scene->getCamera();
@@ -126,8 +127,7 @@ static void render(Scene *scene, const std::string &filename) {
         cout << "done. (took " << timer.elapsedString() << ")" << endl;
     });
 
-    bool gui = false;
-    if(gui){
+    if(use_gui){
       /* Enter the application main loop */
       nanogui::mainloop();
 
@@ -169,7 +169,9 @@ int main(int argc, char **argv) {
 
     for (int i = 1; i < argc; ++i) {
         std::string token(argv[i]);
-        if (token == "-t" || token == "--threads") {
+        if (token == "-n" || token == "--no-gui") {
+            use_gui = false;
+        } else if (token == "-t" || token == "--threads") {
             if (i+1 >= argc) {
                 cerr << "\"--threads\" argument expects a positive integer following it." << endl;
                 return -1;
