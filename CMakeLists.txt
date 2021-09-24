@@ -93,6 +93,7 @@ add_executable(nori
   src/mirror.cpp
   src/dielectric.cpp
   src/plane.cpp
+  src/box.cpp
 )
 
 add_definitions(${NANOGUI_EXTRA_DEFS})

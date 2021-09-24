@@ -3,26 +3,15 @@
 #include <nori/shape.h>
 
 NORI_NAMESPACE_BEGIN
-class Box : public Shape {
+class Instance {
 public:
-  Box(const PropertyList &props) {}
+  Instance(const PropertyList &props) {}
 
   void activate() {
     if (!m_bsdf) {
       /* If no material was assigned, instantiate a diffuse BRDF */
       m_bsdf = static_cast<BSDF *>(
           NoriObjectFactory::createInstance("diffuse", PropertyList()));
-    }
-  }
-
-  struct TwithN {
-    float t;
-    Normal3f n;
-    bool operator<(const TwithN &other) const {
-      return t < other.t;
-    }
-    bool operator>(const TwithN &other) const {
-      return t > other.t;
     }
   }
 
@@ -68,6 +57,27 @@ public:
         return true;
       }
 
+      Normal3f n(0, 0, 0);
+
+      if (tnear == txnear) {
+        if (tnear + ray.o.x()/ray.d.x() > 0) {
+          n.x() = -1;
+        } else {
+          n.x() = 1;
+        }
+      } else if (tnear == tynear) {
+        if (tnear + ray.o.y()/ray.d.y() > 0) {
+          n.y() = -1;
+        } else {
+          n.y() = 1;
+        }
+      } else {
+        if (tnear + ray.o.z()/ray.d.z() > 0) {
+          n.z() = -1;
+        } else {
+          n.z() = 1;
+        }
+      }
 
       updateRayAndHit(ray, its, tnear, n);
       return true;
@@ -114,7 +124,7 @@ public:
     case EBSDF:
       if (m_bsdf)
         throw NoriException(
-            "Box: tried to register multiple BSDF instances!");
+            "Instance: tried to register multiple BSDF instances!");
       m_bsdf = static_cast<BSDF *>(obj);
       break;
 
@@ -122,19 +132,19 @@ public:
       Emitter *emitter = static_cast<Emitter *>(obj);
       if (m_emitter)
         throw NoriException(
-            "Box: tried to register multiple Emitter instances!");
+            "Instance: tried to register multiple Emitter instances!");
       m_emitter = emitter;
     } break;
 
     default:
-      throw NoriException("Box::addChild(<%s>) is not supported!",
+      throw NoriException("Instance::addChild(<%s>) is not supported!",
                           classTypeName(obj->getClassType()));
     }
   }
 
   std::string toString() const {
     return tfm::format(
-        "Box[\n"
+        "Instance[\n"
         "emitter = %s\n"
         "bsdf = %s\n"
         "]",
@@ -157,5 +167,5 @@ private:
   Emitter *m_emitter = nullptr; ///< Associated emitter, if any
 };
 
-NORI_REGISTER_CLASS(Box, "box");
+NORI_REGISTER_CLASS(Instance, "instance");
 NORI_NAMESPACE_END
